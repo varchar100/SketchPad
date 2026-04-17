@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sketchpad-v1';
+const CACHE_NAME = 'sketchpad-v1.1';
 const ASSETS = [
   './index.html',
   './manifest.json'
