@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SketchPad - Free Form Drawing</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#007bff">
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --toolbar-bg: rgba(255, 255, 255, 0.9);
+            --accent-color: #007bff;
+            --text-color: #333;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+        }
+
+        #canvas {
+            display: block;
+            cursor: crosshair;
+            background-color: white;
+        }
+
+        .toolbar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--toolbar-bg);
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .tool-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        input[type="color"] {
+            border: none;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            background: none;
+            padding: 0;
+        }
+
+        input[type="range"] {
+            width: 100px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button.clear-btn {
+            background-color: #dc3545;
+        }
+
+        button.undo-btn {
+            background-color: #6c757d;
+        }
+
+        button.undo-btn:hover {
+            background-color: #5a6268;
+        }
+
+        button.undo-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 12px;
+            color: #888;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <div class="tool-group">
+            <label for="colorPicker">Brush</label>
+            <input type="color" id="colorPicker" value="#000000">
+        </div>
+        <div class="tool-group">
+            <label for="bgColorPicker">Background</label>
+            <input type="color" id="bgColorPicker" value="#ffffff">
+        </div>
+        <div class="tool-group">
+            <label for="brushSize">Size</label>
+            <input type="range" id="brushSize" min="1" max="50" value="5">
+        </div>
+        <button id="undoBtn" class="undo-btn" disabled>Undo</button>
+        <button id="clearBtn" class="clear-btn">Clear</button>
+        <button id="fullscreenBtn">Fullscreen</button>
+        <button id="saveBtn">Save Image</button>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="status">Zoom: 100% | Space+Drag to Pan</div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        const brushSize = document.getElementById('brushSize');
+        const clearBtn = document.getElementById('clearBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const undoBtn = document.getElementById('undoBtn');
+
+        let isDrawing = false;
+        let isPanning = false;
+        let isPanningDrag = false;
+        let lastX = 0;
+        let lastY = 0;
+        
+        let scale = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        
+        let strokes = []; // { color, size, points: [{x, y}] }
+        let currentStroke = null;
+        let undoHistory = []; // Array of strokes arrays for undo
+
+        function getTransformedPoint(x, y) {
+            return {
+                x: (x - offsetX) / scale,
+                y: (y - offsetY) / scale
+            };
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            render();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function render() {
+            // Clear and fill background
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.fillStyle = bgColorPicker.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Apply world transformation
+            ctx.setTransform(scale, 0, 0, scale, offsetX, offsetY);
+
+            // Draw all completed strokes
+            [...strokes, currentStroke].filter(s => s).forEach(stroke => {
+                if (stroke.points.length < 1) return;
+                
+                ctx.beginPath();
+                ctx.strokeStyle = stroke.color;
+                ctx.lineWidth = stroke.size;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+
+                const pts = stroke.points;
+                ctx.moveTo(pts[0].x, pts[0].y);
+                
+                for (let i = 1; i < pts.length; i++) {
+                    ctx.lineTo(pts[i].x, pts[i].y);
+                }
+                ctx.stroke();
+            });
+
+            updateStatus();
+            updateUndoButton();
+        }
+
+        function updateStatus() {
+            const status = document.querySelector('.status');
+            status.textContent = `Zoom: ${Math.round(scale * 100)}% | Space+Drag to Pan | Scroll to Zoom`;
+        }
+
+        function updateUndoButton() {
+            undoBtn.disabled = strokes.length === 0;
+        }
+
+        // Drawing events
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0 && !isPanning) {
+                isDrawing = true;
+                const pt = getTransformedPoint(e.clientX, e.clientY);
+                currentStroke = {
+                    color: colorPicker.value,
+                    size: brushSize.value / scale, // Scale brush size for consistency
+                    points: [pt]
+                };
+            } else if (isPanning || e.button === 1) {
+                isPanningDrag = true;
+                [lastX, lastY] = [e.clientX, e.clientY];
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDrawing && currentStroke) {
+                const pt = getTransformedPoint(e.clientX, e.clientY);
+                currentStroke.points.push(pt);
+                render();
+            } else if (isPanningDrag) {
+                const dx = e.clientX - lastX;
+                const dy = e.clientY - lastY;
+                offsetX += dx;
+                offsetY += dy;
+                [lastX, lastY] = [e.clientX, e.clientY];
+                render();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDrawing && currentStroke) {
+                strokes.push(currentStroke);
+                currentStroke = null;
+                isDrawing = false;
+                render();
+            }
+            isPanningDrag = false;
+        });
+
+        // Zoom logic
+        function handleZoom(delta, centerX, centerY) {
+            const zoomSpeed = 0.1;
+            const oldScale = scale;
+            if (delta > 0) scale *= (1 + zoomSpeed);
+            else scale /= (1 + zoomSpeed);
+
+            scale = Math.max(0.05, Math.min(scale, 20));
+
+            const ratio = scale / oldScale;
+            offsetX = centerX - (centerX - offsetX) * ratio;
+            offsetY = centerY - (centerY - offsetY) * ratio;
+
+            render();
+        }
+
+        canvas.addEventListener('wheel', (e) => {
+            handleZoom(-e.deltaY, e.clientX, e.clientY);
+            e.preventDefault();
+        }, { passive: false });
+
+        // Controls
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                isPanning = true;
+                canvas.style.cursor = 'grab';
+                e.preventDefault();
+            }
+            if (e.ctrlKey) {
+                if (e.code === 'ArrowUp') {
+                    handleZoom(1, window.innerWidth / 2, window.innerHeight / 2);
+                    e.preventDefault();
+                } else if (e.code === 'ArrowDown') {
+                    handleZoom(-1, window.innerWidth / 2, window.innerHeight / 2);
+                    e.preventDefault();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                isPanning = false;
+                canvas.style.cursor = 'crosshair';
+            }
+        });
+
+        // Utils
+        undoBtn.addEventListener('click', () => {
+            strokes.pop();
+            render();
+        });
+
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Clear everything?')) {
+                strokes = [];
+                render();
+            }
+        });
+
+        bgColorPicker.addEventListener('input', render);
+
+        saveBtn.addEventListener('click', () => {
+            // To save with current background and zoom, we just use the current canvas
+            const link = document.createElement('a');
+            link.download = `sketch-${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                fullscreenBtn.textContent = 'Exit Fullscreen';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    fullscreenBtn.textContent = 'Fullscreen';
+                }
+            }
+        });
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>
