@@ -3,12 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SketchPad - Free Form Drawing Pad</title>
+    <title>Pizza Board - Collaborative Free Form Drawing</title>
+    <link rel="apple-touch-icon" sizes="57x57" href="resources/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="resources/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="resources/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="resources/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="resources/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="resources/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="resources/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="resources/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="resources/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="resources/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="resources/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="resources/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="resources/favicon-16x16.png">
+    <link rel="shortcut icon" href="resources/favicon.ico">
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#007bff">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -150,6 +163,32 @@
             cursor: not-allowed;
         }
 
+        .collab-panel {
+            position: fixed;
+            top: 85px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--toolbar-bg);
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 99;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            font-size: 14px;
+        }
+
+        #peerIdDisplay {
+            font-family: monospace;
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
         @media (max-width: 850px) {
             .toolbar {
                 padding: 8px 12px;
@@ -174,6 +213,11 @@
             input[type="range"] {
                 width: 60px;
             }
+            .collab-panel {
+                top: 75px;
+                padding: 8px 12px;
+                font-size: 12px;
+            }
         }
 
         .status {
@@ -187,6 +231,8 @@
             border-radius: 10px;
             pointer-events: none;
         }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -243,12 +289,32 @@
             </svg>
             <span class="btn-text">Save</span>
         </button>
+        <button id="collabModeBtn" style="background-color: #28a745;" aria-label="Together Mode">
+            <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+            </svg>
+            <span class="btn-text">Together</span>
+        </button>
+    </div>
+
+    <div id="collabPanel" class="collab-panel hidden">
+        <div id="setupMode">
+            <button id="hostBtn">Host Board</button>
+            <span>or</span>
+            <input type="text" id="joinIdInput" placeholder="Enter Board ID" style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; width: 80px;">
+            <button id="joinBtn">Join</button>
+        </div>
+        <div id="activeMode" class="hidden">
+            <span>Board ID: <span id="peerIdDisplay">...</span></span>
+            <span id="connectionStatus" style="margin-left: 10px; color: #28a745; font-weight: bold;">● Live</span>
+        </div>
     </div>
 
     <canvas id="canvas"></canvas>
 
     <div class="status">Zoom: 100% | Space+Drag to Pan</div>
 
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
@@ -258,6 +324,14 @@
         const clearBtn = document.getElementById('clearBtn');
         const saveBtn = document.getElementById('saveBtn');
         const undoBtn = document.getElementById('undoBtn');
+        const collabModeBtn = document.getElementById('collabModeBtn');
+        const collabPanel = document.getElementById('collabPanel');
+
+        // PeerJS Variables
+        let peer = null;
+        let connections = [];
+        let isHost = false;
+        const BOARD_PREFIX = 'vboard-';
 
         let isDrawing = false;
         let isPanning = false;
@@ -271,7 +345,6 @@
         
         let strokes = []; // { color, size, points: [{x, y}] }
         let currentStroke = null;
-        let undoHistory = []; // Array of strokes arrays for undo
 
         function getTransformedPoint(x, y) {
             return {
@@ -350,7 +423,7 @@
                     const pt = getTransformedPoint(e.clientX, e.clientY);
                     currentStroke = {
                         color: colorPicker.value,
-                        size: brushSize.value / scale, // Scale brush size for consistency
+                        size: brushSize.value / scale, 
                         points: [pt]
                     };
                 } else if (isPanning || (e.pointerType === 'mouse' && e.button === 1)) {
@@ -358,7 +431,6 @@
                     [lastX, lastY] = [e.clientX, e.clientY];
                 }
             } else if (activePointers.size === 2) {
-                // Multi-touch: cancel drawing and prepare for pinch/pan
                 if (isDrawing) {
                     isDrawing = false;
                     currentStroke = null;
@@ -380,7 +452,6 @@
 
             if (activePointers.size === 1) {
                 if (isDrawing && currentStroke) {
-                    // Use coalesced events for smoother lines on high-refresh touch screens
                     const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
                     for (let event of events) {
                         const pt = getTransformedPoint(event.clientX, event.clientY);
@@ -401,7 +472,6 @@
                 const midX = (pts[0].clientX + pts[1].clientX) / 2;
                 const midY = (pts[0].clientY + pts[1].clientY) / 2;
 
-                // Zoom logic
                 const zoomFactor = dist / lastPinchDist;
                 const oldScale = scale;
                 scale *= zoomFactor;
@@ -409,7 +479,6 @@
                 
                 const actualFactor = scale / oldScale;
                 
-                // Pan logic (including zoom centering and mid-point drift)
                 offsetX = midX - (midX - offsetX) * actualFactor + (midX - lastPinchMid.x);
                 offsetY = midY - (midY - offsetY) * actualFactor + (midY - lastPinchMid.y);
 
@@ -425,13 +494,13 @@
             if (activePointers.size === 0) {
                 if (isDrawing && currentStroke) {
                     strokes.push(currentStroke);
+                    broadcast({ type: 'STROKE', data: currentStroke });
                     currentStroke = null;
                     isDrawing = false;
                     render();
                 }
                 isPanningDrag = false;
             } else if (activePointers.size === 1) {
-                // When going from 2 to 1 finger, reset the pan anchor
                 const remainingPointer = activePointers.values().next().value;
                 [lastX, lastY] = [remainingPointer.clientX, remainingPointer.clientY];
                 lastPinchDist = 0;
@@ -490,22 +559,26 @@
         // Utils
         undoBtn.addEventListener('click', () => {
             strokes.pop();
+            broadcast({ type: 'UNDO' });
             render();
         });
 
         clearBtn.addEventListener('click', () => {
             if (confirm('Clear everything?')) {
                 strokes = [];
+                broadcast({ type: 'CLEAR' });
                 render();
             }
         });
 
-        bgColorPicker.addEventListener('input', render);
+        bgColorPicker.addEventListener('input', () => {
+            render();
+            broadcast({ type: 'BG_COLOR', data: bgColorPicker.value });
+        });
 
         saveBtn.addEventListener('click', () => {
-            // To save with current background and zoom, we just use the current canvas
             const link = document.createElement('a');
-            link.download = `sketch-${Date.now()}.png`;
+            link.download = `pizza-board-${Date.now()}.png`;
             link.href = canvas.toDataURL();
             link.click();
         });
@@ -532,6 +605,120 @@
                 fullscreenText.textContent = 'Fullscreen';
             }
         });
+
+        // TOGETHER MODE LOGIC
+        collabModeBtn.addEventListener('click', () => {
+            collabPanel.classList.toggle('hidden');
+        });
+
+        document.getElementById('hostBtn').addEventListener('click', () => {
+            initPeer();
+        });
+
+        document.getElementById('joinBtn').addEventListener('click', () => {
+            const id = document.getElementById('joinIdInput').value.trim();
+            if (id) {
+                initPeer(BOARD_PREFIX + id);
+            }
+        });
+
+        function initPeer(targetId = null) {
+            const myId = targetId ? null : BOARD_PREFIX + Math.floor(1000 + Math.random() * 9000);
+            
+            if (peer) peer.destroy();
+            peer = new Peer(myId);
+            
+            peer.on('open', (id) => {
+                document.getElementById('setupMode').classList.add('hidden');
+                document.getElementById('activeMode').classList.remove('hidden');
+                
+                const displayId = (targetId || id).replace(BOARD_PREFIX, '');
+                document.getElementById('peerIdDisplay').textContent = displayId;
+                
+                if (targetId) {
+                    const conn = peer.connect(targetId);
+                    setupConnection(conn);
+                } else {
+                    isHost = true;
+                }
+            });
+
+            peer.on('error', (err) => {
+                if (err.type === 'unavailable-id' && !targetId) {
+                    initPeer();
+                } else if (err.type === 'peer-not-found') {
+                    alert('Board not found. Please check the ID.');
+                    location.reload();
+                } else {
+                    console.error('PeerJS Error:', err.type);
+                }
+            });
+
+            peer.on('connection', (conn) => {
+                setupConnection(conn);
+                if (isHost) {
+                    setTimeout(() => {
+                        conn.send({ 
+                            type: 'INIT_STATE', 
+                            data: { strokes, bgColor: bgColorPicker.value } 
+                        });
+                    }, 500);
+                }
+            });
+        }
+
+        function setupConnection(conn) {
+            conn.on('open', () => {
+                connections.push(conn);
+                document.getElementById('connectionStatus').textContent = `● Live (${connections.length})`;
+            });
+
+            conn.on('data', (msg) => {
+                handleRemoteData(msg);
+                if (isHost) {
+                    connections.forEach(c => {
+                        if (c !== conn) c.send(msg);
+                    });
+                }
+            });
+
+            conn.on('close', () => {
+                connections = connections.filter(c => c !== conn);
+                document.getElementById('connectionStatus').textContent = connections.length > 0 ? `● Live (${connections.length})` : '● Waiting...';
+            });
+        }
+
+        function handleRemoteData(msg) {
+            switch (msg.type) {
+                case 'INIT_STATE':
+                    strokes = msg.data.strokes;
+                    bgColorPicker.value = msg.data.bgColor;
+                    render();
+                    break;
+                case 'STROKE':
+                    strokes.push(msg.data);
+                    render();
+                    break;
+                case 'UNDO':
+                    strokes.pop();
+                    render();
+                    break;
+                case 'CLEAR':
+                    strokes = [];
+                    render();
+                    break;
+                case 'BG_COLOR':
+                    bgColorPicker.value = msg.data;
+                    render();
+                    break;
+            }
+        }
+
+        function broadcast(msg) {
+            if (connections.length > 0) {
+                connections.forEach(conn => conn.send(msg));
+            }
+        }
 
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
