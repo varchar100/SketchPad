@@ -63,6 +63,16 @@
                 </label>
                 <input type="color" id="colorPicker" value="#000000">
             </div>
+
+            <div class="tool-group">
+                <!-- <label for="brushSize" aria-label="Brush Size">
+                    <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7.5l3 3m0 0l3-3m-3 3v13.5m0-13.5L12 3m0 0l-3 3m3-3l3 3M4.5 21h15M4.5 18h10M4.5 15h15M4.5 12h10M4.5 9h15" />
+                    </svg>
+                    <span>Size</span>
+                </label> -->
+                <input type="range" id="brushSize" min="1" max="50" value="5">
+            </div>
             <div class="tool-group">
                 <label for="bgColorPicker" aria-label="Background Color">
                     <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -71,15 +81,6 @@
                     <span>Background</span>
                 </label>
                 <input type="color" id="bgColorPicker" value="#ffffff">
-            </div>
-            <div class="tool-group">
-                <label for="brushSize" aria-label="Brush Size">
-                    <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7.5l3 3m0 0l3-3m-3 3v13.5m0-13.5L12 3m0 0l-3 3m3-3l3 3M4.5 21h15M4.5 18h10M4.5 15h15M4.5 12h10M4.5 9h15" />
-                    </svg>
-                    <span>Size</span>
-                </label>
-                <input type="range" id="brushSize" min="1" max="50" value="5">
             </div>
             <button id="undoBtn" class="undo-btn" disabled aria-label="Undo">
                 <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
