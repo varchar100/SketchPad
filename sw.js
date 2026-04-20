@@ -1,7 +1,9 @@
 const CACHE_NAME = 'sketchpad-v1.1';
 const ASSETS = [
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './style.css',
+  './app.js'
 ];
 
 self.addEventListener('install', (e) => {

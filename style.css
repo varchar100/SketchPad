@@ -1,0 +1,216 @@
+:root {
+    --bg-color: #f8f9fa;
+    --toolbar-bg: rgba(255, 255, 255, 0.9);
+    --accent-color: #007bff;
+    --text-color: #333;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+}
+
+#canvas {
+    display: block;
+    cursor: crosshair;
+    background-color: white;
+    touch-action: none;
+}
+
+.toolbar {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--toolbar-bg);
+    padding: 10px 20px;
+    border-radius: 50px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    max-width: 95vw;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.toolbar::-webkit-scrollbar {
+    display: none;
+}
+
+.tool-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.tool-group label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tool-icon {
+    display: none;
+    width: 20px;
+    height: 20px;
+}
+
+label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+input[type="color"] {
+    border: none;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+input[type="range"] {
+    width: 100px;
+    cursor: pointer;
+}
+
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    background-color: var(--accent-color);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+button .btn-text {
+    display: inline;
+}
+
+button .tool-icon {
+    display: none;
+    width: 20px;
+    height: 20px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+button.clear-btn {
+    background-color: #dc3545;
+}
+
+button.undo-btn {
+    background-color: #6c757d;
+}
+
+button.undo-btn:hover {
+    background-color: #5a6268;
+}
+
+button.undo-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.collab-panel {
+    position: fixed;
+    top: 85px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--toolbar-bg);
+    padding: 10px 20px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 99;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 14px;
+}
+
+#peerIdDisplay {
+    font-family: monospace;
+    background: #eee;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+#setupMode, #activeMode {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (max-width: 850px) {
+    .toolbar {
+        padding: 8px 12px;
+        gap: 10px;
+    }
+    .tool-group label span {
+        display: none;
+    }
+    .tool-icon {
+        display: block;
+    }
+    button .btn-text {
+        display: none;
+    }
+    button .tool-icon {
+        display: block;
+    }
+    button {
+        padding: 8px;
+        border-radius: 50%;
+    }
+    input[type="range"] {
+        width: 60px;
+    }
+    .collab-panel {
+        top: 75px;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+.status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 12px;
+    color: #888;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 5px 10px;
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+.hidden { display: none !important; }
