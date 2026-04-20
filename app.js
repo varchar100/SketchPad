@@ -265,29 +265,6 @@ saveBtn.addEventListener('click', () => {
     link.click();
 });
 
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-const fullscreenText = fullscreenBtn.querySelector('.btn-text');
-
-fullscreenBtn.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-        fullscreenText.textContent = 'Exit Full';
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-            fullscreenText.textContent = 'Fullscreen';
-        }
-    }
-});
-
-document.addEventListener('fullscreenchange', () => {
-    if (document.fullscreenElement) {
-        fullscreenText.textContent = 'Exit Full';
-    } else {
-        fullscreenText.textContent = 'Fullscreen';
-    }
-});
-
 // TOGETHER MODE LOGIC
 collabModeBtn.addEventListener('click', () => {
     collabPanel.classList.toggle('hidden');
