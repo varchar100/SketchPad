@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
-  "description": "A collaborative pizza-themed drawing board.",
+  "description": "Private, collaborative drawing board. Shared Peer-to-Peer, never stored on servers.",
   "icons": [
     {
       "src": "resources/android-icon-36x36.png",

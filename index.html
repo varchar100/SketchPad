@@ -23,95 +23,124 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#007bff">
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="Pizza Board - Private Collaborative Drawing">
+    <meta name="description" content="Pizza Board is a fast, private, and collaborative drawing tool. Drawings are shared Peer-to-Peer and never stored on any servers. No sign-up required.">
+    <meta name="keywords" content="drawing, whiteboard, collaborative, real-time, online board, pizza board, free form drawing, sketchpad, private drawing, p2p drawing">
+    <meta name="author" content="Pizza Board Team">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pizzaboard.app/">
+    <meta property="og:title" content="Pizza Board - Private Collaborative Drawing">
+    <meta property="og:description" content="Fast, private, and collaborative drawing tool. Shared Peer-to-Peer—nothing is stored on our servers.">
+    <meta property="og:image" content="https://pizzaboard.app/resources/apple-icon-180x180.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://pizzaboard.app/">
+    <meta property="twitter:title" content="Pizza Board - Private Collaborative Drawing">
+    <meta property="twitter:description" content="Fast, private, and collaborative drawing tool. Shared Peer-to-Peer—nothing is stored on our servers.">
+    <meta property="twitter:image" content="https://pizzaboard.app/resources/apple-icon-180x180.png">
+
+    <link rel="canonical" href="https://pizzaboard.app/">
 </head>
 <body>
 
-    <div class="toolbar">
-        <div class="tool-group">
-            <label for="colorPicker" aria-label="Brush Color">
-                <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                </svg>
-                <span>Brush</span>
-            </label>
-            <input type="color" id="colorPicker" value="#000000">
-        </div>
-        <div class="tool-group">
-            <label for="bgColorPicker" aria-label="Background Color">
-                <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                </svg>
-                <span>Background</span>
-            </label>
-            <input type="color" id="bgColorPicker" value="#ffffff">
-        </div>
-        <div class="tool-group">
-            <label for="brushSize" aria-label="Brush Size">
-                <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7.5l3 3m0 0l3-3m-3 3v13.5m0-13.5L12 3m0 0l-3 3m3-3l3 3M4.5 21h15M4.5 18h10M4.5 15h15M4.5 12h10M4.5 9h15" />
-                </svg>
-                <span>Size</span>
-            </label>
-            <input type="range" id="brushSize" min="1" max="50" value="5">
-        </div>
-        <button id="undoBtn" class="undo-btn" disabled aria-label="Undo">
-            <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-            </svg>
-            <span class="btn-text">Undo</span>
-        </button>
-        <button id="clearBtn" class="clear-btn" aria-label="Clear">
-            <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            <span class="btn-text">Clear</span>
-        </button>
-        <button id="fullscreenBtn" aria-label="Toggle Fullscreen">
-            <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
-            </svg>
-            <span class="btn-text">Fullscreen</span>
-        </button>
-        <button id="saveBtn" aria-label="Save Image">
-            <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            <span class="btn-text">Save</span>
-        </button>
-        <button id="collabModeBtn" style="background-color: #28a745;" aria-label="Together Mode">
-            <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-            </svg>
-            <span class="btn-text">Together</span>
-        </button>
-    </div>
+    <header>
+        <h1 class="hidden-heading">Pizza Board - Collaborative Free Form Drawing</h1>
+    </header>
 
-    <div id="collabPanel" class="collab-panel hidden">
-        <div id="setupMode">
-            <button id="hostBtn" aria-label="Host Board">
+    <main>
+        <div class="toolbar" role="toolbar" aria-label="Drawing Tools">
+            <div class="tool-group">
+                <label for="colorPicker" aria-label="Brush Color">
+                    <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                    </svg>
+                    <span>Brush</span>
+                </label>
+                <input type="color" id="colorPicker" value="#000000">
+            </div>
+            <div class="tool-group">
+                <label for="bgColorPicker" aria-label="Background Color">
+                    <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                    </svg>
+                    <span>Background</span>
+                </label>
+                <input type="color" id="bgColorPicker" value="#ffffff">
+            </div>
+            <div class="tool-group">
+                <label for="brushSize" aria-label="Brush Size">
+                    <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7.5l3 3m0 0l3-3m-3 3v13.5m0-13.5L12 3m0 0l-3 3m3-3l3 3M4.5 21h15M4.5 18h10M4.5 15h15M4.5 12h10M4.5 9h15" />
+                    </svg>
+                    <span>Size</span>
+                </label>
+                <input type="range" id="brushSize" min="1" max="50" value="5">
+            </div>
+            <button id="undoBtn" class="undo-btn" disabled aria-label="Undo">
                 <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3V3.75a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3v7.5a3 3 0 0 1-3 3m-13.5 0a3 3 0 0 0-3 3v3.75a3 3 0 0 0 3 3h13.5a3 3 0 0 0 3-3v-3.75a3 3 0 0 0-3-3m-13.5 0h13.5m-2.25-9h.008v.008h-.008V5.25Zm0 3h.008v.008h-.008V8.25m-6.75-3h.008v.008h-.008V5.25Zm0 3h.008v.008h-.008V8.25" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                 </svg>
-                <span class="btn-text">Host Board</span>
+                <span class="btn-text">Undo</span>
             </button>
-            <span>or</span>
-            <input type="text" id="joinIdInput" placeholder="Enter Board ID" style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; width: 80px;">
-            <button id="joinBtn" aria-label="Join Board">
+            <button id="clearBtn" class="clear-btn" aria-label="Clear">
                 <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-                <span class="btn-text">Join</span>
+                <span class="btn-text">Clear</span>
+            </button>
+            <button id="fullscreenBtn" aria-label="Toggle Fullscreen">
+                <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                </svg>
+                <span class="btn-text">Fullscreen</span>
+            </button>
+            <button id="saveBtn" aria-label="Save Image">
+                <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                <span class="btn-text">Save</span>
+            </button>
+            <button id="collabModeBtn" style="background-color: #28a745;" aria-label="Together Mode">
+                <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                </svg>
+                <span class="btn-text">Together</span>
             </button>
         </div>
-        <div id="activeMode" class="hidden">
-            <span>Board ID: <span id="peerIdDisplay">...</span></span>
-            <span id="connectionStatus" style="margin-left: 10px; color: #28a745; font-weight: bold;">● Live</span>
+
+        <div id="collabPanel" class="collab-panel hidden">
+            <div id="setupMode">
+                <button id="hostBtn" aria-label="Host Board">
+                    <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3V3.75a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3v7.5a3 3 0 0 1-3 3m-13.5 0a3 3 0 0 0-3 3v3.75a3 3 0 0 0 3 3h13.5a3 3 0 0 0 3-3v-3.75a3 3 0 0 0-3-3m-13.5 0h13.5m-2.25-9h.008v.008h-.008V5.25Zm0 3h.008v.008h-.008V8.25m-6.75-3h.008v.008h-.008V5.25Zm0 3h.008v.008h-.008V8.25" />
+                    </svg>
+                    <span class="btn-text">Host Board</span>
+                </button>
+                <span>or</span>
+                <input type="text" id="joinIdInput" placeholder="Enter Board ID" style="padding: 5px; border-radius: 5px; border: 1px solid #ccc; width: 80px;">
+                <button id="joinBtn" aria-label="Join Board">
+                    <svg class="tool-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                    </svg>
+                    <span class="btn-text">Join</span>
+                </button>
+            </div>
+            <div id="activeMode" class="hidden">
+                <span>Board ID: <span id="peerIdDisplay">...</span></span>
+                <span id="connectionStatus" style="margin-left: 10px; color: #28a745; font-weight: bold;">● Live</span>
+            </div>
         </div>
-    </div>
 
-    <canvas id="canvas"></canvas>
+        <canvas id="canvas"></canvas>
+    </main>
 
-    <div class="status">Zoom: 100% | Space+Drag to Pan</div>
+    <footer class="status">Zoom: 100% | Space+Drag to Pan</footer>
+
 
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="app.js"></script>
