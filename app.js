@@ -13,7 +13,7 @@ const collabPanel = document.getElementById('collabPanel');
 let peer = null;
 let connections = [];
 let isHost = false;
-const BOARD_PREFIX = 'vboard-';
+const BOARD_PREFIX = 'pizzaboard.app-';
 
 let isDrawing = false;
 let isPanning = false;
