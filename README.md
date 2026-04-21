@@ -8,6 +8,7 @@ Sketch Pad is a web-based application that allows users to create digital drawin
 - Draw with various brush sizes and colors.
 - Clear your sketchpad with a single click.
 - Save your drawings.
+- **Collaborative Drawing**: Multiple users can draw on the same canvas simultaneously from separate devices in real-time.
 
 ### Technologies Used
 - **JavaScript** for dynamic interactions and drawing functionalities.
@@ -16,3 +17,6 @@ Sketch Pad is a web-based application that allows users to create digital drawin
 
 ### Getting Started
 To run the Sketch Pad application, simply clone the repository and open the `index.html` in a web browser.
+
+### Collaborative Features
+Users can invite others to draw on the same sketchpad by sharing a session link. All participants will see each other's strokes in real-time, enabling collaborative art creation and brainstorming.
