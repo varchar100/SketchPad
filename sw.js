@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pizzaboard-v1.5';
+const CACHE_NAME = 'pizzaboard-v1.6';
 const ASSETS = [
   './index.html',
   './manifest.json',
