@@ -12,6 +12,9 @@ body {
     overflow: hidden;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
 }
 
 #canvas {
@@ -69,6 +72,10 @@ label {
     font-weight: 600;
     color: var(--text-color);
     white-space: nowrap;
+}
+
+input[type="text"] {
+    font-size: 16px;
 }
 
 input[type="color"] {

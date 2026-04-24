@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sketchpad-v1.1';
+const CACHE_NAME = 'pizzaboard-v1.5';
 const ASSETS = [
   './index.html',
   './manifest.json',

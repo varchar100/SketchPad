@@ -22,8 +22,10 @@ let lastX = 0;
 let lastY = 0;
 
 let scale = 1;
-let offsetX = 0;
-let offsetY = 0;
+let offsetX = window.innerWidth / 2;
+let offsetY = window.innerHeight / 2;
+let hostWidth = 0;
+let hostHeight = 0;
 
 let strokes = []; // { color, size, points: [{x, y}] }
 let currentStroke = null;
@@ -36,9 +38,21 @@ function getTransformedPoint(x, y) {
 }
 
 function resizeCanvas() {
+    const oldWidth = canvas.width;
+    const oldHeight = canvas.height;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    
+    // Adjust offsets to keep the center point stable during resize
+    if (oldWidth > 0 && oldHeight > 0) {
+        offsetX += (canvas.width - oldWidth) / 2;
+        offsetY += (canvas.height - oldHeight) / 2;
+    }
+    
     render();
+    if (isHost) {
+        broadcast({ type: 'VIEWPORT', data: { scale, offsetX, offsetY, width: canvas.width, height: canvas.height } });
+    }
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -76,7 +90,7 @@ function render() {
     updateUndoButton();
     
     if (isHost && (isPanningDrag || activePointers.size === 2)) {
-        broadcast({ type: 'VIEWPORT', data: { scale, offsetX, offsetY } });
+        broadcast({ type: 'VIEWPORT', data: { scale, offsetX, offsetY, width: canvas.width, height: canvas.height } });
     }
 }
 
@@ -211,7 +225,7 @@ function handleZoom(delta, centerX, centerY) {
 
     render();
     if (isHost) {
-        broadcast({ type: 'VIEWPORT', data: { scale, offsetX, offsetY } });
+        broadcast({ type: 'VIEWPORT', data: { scale, offsetX, offsetY, width: canvas.width, height: canvas.height } });
     }
 }
 
@@ -227,7 +241,21 @@ window.addEventListener('keydown', (e) => {
         canvas.style.cursor = 'grab';
         e.preventDefault();
     }
-    if (e.ctrlKey) {
+    
+    // Prevent browser zoom shortcuts
+    if (e.ctrlKey || e.metaKey) {
+        if (e.code === 'Equal' || e.code === 'Minus' || e.code === 'Digit0' || e.key === '+' || e.key === '-' || e.key === '0') {
+            e.preventDefault();
+            if (e.code === 'Equal' || e.key === '+') {
+                handleZoom(1, window.innerWidth / 2, window.innerHeight / 2);
+            } else if (e.code === 'Minus' || e.key === '-') {
+                handleZoom(-1, window.innerWidth / 2, window.innerHeight / 2);
+            } else if (e.code === 'Digit0' || e.key === '0') {
+                scale = 1;
+                render();
+            }
+        }
+        
         if (e.code === 'ArrowUp') {
             handleZoom(1, window.innerWidth / 2, window.innerHeight / 2);
             e.preventDefault();
@@ -237,6 +265,13 @@ window.addEventListener('keydown', (e) => {
         }
     }
 });
+
+// Prevent pinch-to-zoom gesture on some browsers
+window.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) {
+        e.preventDefault();
+    }
+}, { passive: false });
 
 window.addEventListener('keyup', (e) => {
     if (e.code === 'Space') {
@@ -255,6 +290,9 @@ undoBtn.addEventListener('click', () => {
 clearBtn.addEventListener('click', () => {
     if (confirm('Clear everything?')) {
         strokes = [];
+        scale = 1;
+        offsetX = canvas.width / 2;
+        offsetY = canvas.height / 2;
         broadcast({ type: 'CLEAR' });
         render();
     }
@@ -322,21 +360,30 @@ function initPeer(targetId = null) {
 
     peer.on('connection', (conn) => {
         setupConnection(conn);
-        if (isHost) {
-            setTimeout(() => {
-                conn.send({ 
-                    type: 'INIT_STATE', 
-                    data: { strokes, bgColor: bgColorPicker.value, viewport: { scale, offsetX, offsetY } } 
-                });
-            }, 500);
-        }
     });
 }
 
 function setupConnection(conn) {
     conn.on('open', () => {
         connections.push(conn);
-        document.getElementById('connectionStatus').textContent = `● Live (${connections.length})`;
+        updateConnectionStatus();
+        
+        if (isHost) {
+            conn.send({ 
+                type: 'INIT_STATE', 
+                data: { 
+                    strokes, 
+                    bgColor: bgColorPicker.value, 
+                    viewport: { 
+                        scale, 
+                        offsetX, 
+                        offsetY,
+                        width: canvas.width,
+                        height: canvas.height
+                    } 
+                } 
+            });
+        }
     });
 
     conn.on('data', (msg) => {
@@ -350,26 +397,47 @@ function setupConnection(conn) {
 
     conn.on('close', () => {
         connections = connections.filter(c => c !== conn);
-        document.getElementById('connectionStatus').textContent = connections.length > 0 ? `● Live (${connections.length})` : '● Waiting...';
+        updateConnectionStatus();
     });
+}
+
+function updateConnectionStatus() {
+    const statusEl = document.getElementById('connectionStatus');
+    if (connections.length > 0) {
+        statusEl.textContent = isHost ? `● Hosting (${connections.length})` : '● Live';
+    } else {
+        statusEl.textContent = '● Waiting...';
+    }
 }
 
 function handleRemoteData(msg) {
     switch (msg.type) {
         case 'INIT_STATE':
-            strokes = msg.data.strokes;
-            bgColorPicker.value = msg.data.bgColor;
+            strokes = msg.data.strokes || [];
+            bgColorPicker.value = msg.data.bgColor || '#ffffff';
             if (msg.data.viewport) {
-                scale = msg.data.viewport.scale;
-                offsetX = msg.data.viewport.offsetX;
-                offsetY = msg.data.viewport.offsetY;
+                scale = msg.data.viewport.scale || 1;
+                // Center the joiner's view on the host's viewport center
+                hostWidth = msg.data.viewport.width || canvas.width;
+                hostHeight = msg.data.viewport.height || canvas.height;
+                offsetX = msg.data.viewport.offsetX + (canvas.width - hostWidth) / 2;
+                offsetY = msg.data.viewport.offsetY + (canvas.height - hostHeight) / 2;
             }
             render();
             break;
         case 'VIEWPORT':
             scale = msg.data.scale;
-            offsetX = msg.data.offsetX;
-            offsetY = msg.data.offsetY;
+            if (msg.data.width && msg.data.height) {
+                hostWidth = msg.data.width;
+                hostHeight = msg.data.height;
+            }
+            if (hostWidth && hostHeight) {
+                offsetX = msg.data.offsetX + (canvas.width - hostWidth) / 2;
+                offsetY = msg.data.offsetY + (canvas.height - hostHeight) / 2;
+            } else {
+                offsetX = msg.data.offsetX;
+                offsetY = msg.data.offsetY;
+            }
             render();
             break;
         case 'STROKE':
@@ -382,6 +450,9 @@ function handleRemoteData(msg) {
             break;
         case 'CLEAR':
             strokes = [];
+            scale = 1;
+            offsetX = canvas.width / 2;
+            offsetY = canvas.height / 2;
             render();
             break;
         case 'BG_COLOR':
