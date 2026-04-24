@@ -29,6 +29,7 @@ let hostHeight = 0;
 
 let strokes = []; // { color, size, points: [{x, y}] }
 let currentStroke = null;
+let remoteActiveStrokes = new Map();
 
 function getTransformedPoint(x, y) {
     return {
@@ -68,7 +69,10 @@ function render() {
     ctx.setTransform(scale, 0, 0, scale, offsetX, offsetY);
 
     // Draw all completed strokes
-    [...strokes, currentStroke].filter(s => s).forEach(stroke => {
+    const allStrokes = [...strokes, ...remoteActiveStrokes.values()];
+    if (currentStroke) allStrokes.push(currentStroke);
+
+    allStrokes.forEach(stroke => {
         if (stroke.points.length < 1) return;
         
         ctx.beginPath();
@@ -121,11 +125,14 @@ canvas.addEventListener('pointerdown', (e) => {
         if ((e.pointerType === 'mouse' ? e.button === 0 : true) && !isPanning) {
             isDrawing = true;
             const pt = getTransformedPoint(e.clientX, e.clientY);
+            const strokeId = Math.random().toString(36).substring(7);
             currentStroke = {
+                id: strokeId,
                 color: colorPicker.value,
                 size: brushSize.value / scale, 
                 points: [pt]
             };
+            broadcast({ type: 'STROKE_START', data: currentStroke });
         } else if (isPanning || (e.pointerType === 'mouse' && e.button === 1)) {
             isPanningDrag = true;
             [lastX, lastY] = [e.clientX, e.clientY];
@@ -153,10 +160,13 @@ window.addEventListener('pointermove', (e) => {
     if (activePointers.size === 1) {
         if (isDrawing && currentStroke) {
             const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+            const newPoints = [];
             for (let event of events) {
                 const pt = getTransformedPoint(event.clientX, event.clientY);
                 currentStroke.points.push(pt);
+                newPoints.push(pt);
             }
+            broadcast({ type: 'STROKE_UPDATE', data: { id: currentStroke.id, points: newPoints } });
             render();
         } else if (isPanningDrag) {
             const dx = e.clientX - lastX;
@@ -194,7 +204,7 @@ const handlePointerUp = (e) => {
     if (activePointers.size === 0) {
         if (isDrawing && currentStroke) {
             strokes.push(currentStroke);
-            broadcast({ type: 'STROKE', data: currentStroke });
+            broadcast({ type: 'STROKE_END', data: { id: currentStroke.id } });
             currentStroke = null;
             isDrawing = false;
             render();
@@ -440,6 +450,25 @@ function handleRemoteData(msg) {
             }
             render();
             break;
+        case 'STROKE_START':
+            remoteActiveStrokes.set(msg.data.id, msg.data);
+            render();
+            break;
+        case 'STROKE_UPDATE':
+            const s = remoteActiveStrokes.get(msg.data.id);
+            if (s) {
+                s.points.push(...msg.data.points);
+                render();
+            }
+            break;
+        case 'STROKE_END':
+            const finishedStroke = remoteActiveStrokes.get(msg.data.id);
+            if (finishedStroke) {
+                strokes.push(finishedStroke);
+                remoteActiveStrokes.delete(msg.data.id);
+                render();
+            }
+            break;
         case 'STROKE':
             strokes.push(msg.data);
             render();
@@ -450,6 +479,7 @@ function handleRemoteData(msg) {
             break;
         case 'CLEAR':
             strokes = [];
+            remoteActiveStrokes.clear();
             scale = 1;
             offsetX = canvas.width / 2;
             offsetY = canvas.height / 2;
