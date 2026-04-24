@@ -74,6 +74,10 @@ function render() {
 
     updateStatus();
     updateUndoButton();
+    
+    if (isHost && (isPanningDrag || activePointers.size === 2)) {
+        broadcast({ type: 'VIEWPORT', data: { scale, offsetX, offsetY } });
+    }
 }
 
 let activePointers = new Map();
@@ -206,6 +210,9 @@ function handleZoom(delta, centerX, centerY) {
     offsetY = centerY - (centerY - offsetY) * ratio;
 
     render();
+    if (isHost) {
+        broadcast({ type: 'VIEWPORT', data: { scale, offsetX, offsetY } });
+    }
 }
 
 canvas.addEventListener('wheel', (e) => {
@@ -319,7 +326,7 @@ function initPeer(targetId = null) {
             setTimeout(() => {
                 conn.send({ 
                     type: 'INIT_STATE', 
-                    data: { strokes, bgColor: bgColorPicker.value } 
+                    data: { strokes, bgColor: bgColorPicker.value, viewport: { scale, offsetX, offsetY } } 
                 });
             }, 500);
         }
@@ -352,6 +359,17 @@ function handleRemoteData(msg) {
         case 'INIT_STATE':
             strokes = msg.data.strokes;
             bgColorPicker.value = msg.data.bgColor;
+            if (msg.data.viewport) {
+                scale = msg.data.viewport.scale;
+                offsetX = msg.data.viewport.offsetX;
+                offsetY = msg.data.viewport.offsetY;
+            }
+            render();
+            break;
+        case 'VIEWPORT':
+            scale = msg.data.scale;
+            offsetX = msg.data.offsetX;
+            offsetY = msg.data.offsetY;
             render();
             break;
         case 'STROKE':
