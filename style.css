@@ -217,7 +217,13 @@ button.undo-btn:disabled {
     background: rgba(255, 255, 255, 0.7);
     padding: 5px 10px;
     border-radius: 10px;
-    pointer-events: none;
+    z-index: 90;
+}
+
+.status a {
+    color: #888;
+    text-decoration: underline;
+    margin-left: 10px;
 }
 
 .hidden-heading {

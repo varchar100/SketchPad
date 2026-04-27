@@ -103,12 +103,12 @@ let lastPinchDist = 0;
 let lastPinchMid = { x: 0, y: 0 };
 
 function updateStatus() {
-    const status = document.querySelector('.status');
+    const statusText = document.getElementById('statusText');
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (isTouch) {
-        status.textContent = `Zoom: ${Math.round(scale * 100)}% | Pinch/Two-finger Pan | Tap to Draw`;
+        statusText.textContent = `Zoom: ${Math.round(scale * 100)}% | Pinch/Two-finger Pan | Tap to Draw`;
     } else {
-        status.textContent = `Zoom: ${Math.round(scale * 100)}% | Space+Drag to Pan | Scroll to Zoom`;
+        statusText.textContent = `Zoom: ${Math.round(scale * 100)}% | Space+Drag to Pan | Scroll to Zoom`;
     }
 }
 
