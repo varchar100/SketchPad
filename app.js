@@ -106,7 +106,7 @@ function updateStatus() {
     const statusEl = document.querySelector('.status');
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (isTouch) {
-        statusEl.textContent = `Zoom: ${Math.round(scale * 100)}% | Pinch/Two-finger Pan | Tap to Draw`;
+        statusEl.textContent = `Zoom: ${Math.round(scale * 100)}% | Pinch/Two-finger Pan`;
     } else {
         statusEl.textContent = `Zoom: ${Math.round(scale * 100)}% | Space+Drag to Pan | Scroll to Zoom`;
     }
