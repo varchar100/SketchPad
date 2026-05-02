@@ -103,12 +103,12 @@ let lastPinchDist = 0;
 let lastPinchMid = { x: 0, y: 0 };
 
 function updateStatus() {
-    const statusText = document.getElementById('statusText');
+    const statusEl = document.querySelector('.status');
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (isTouch) {
-        statusText.textContent = `Zoom: ${Math.round(scale * 100)}% | Pinch/Two-finger Pan | Tap to Draw`;
+        statusEl.textContent = `Zoom: ${Math.round(scale * 100)}% | Pinch/Two-finger Pan | Tap to Draw`;
     } else {
-        statusText.textContent = `Zoom: ${Math.round(scale * 100)}% | Space+Drag to Pan | Scroll to Zoom`;
+        statusEl.textContent = `Zoom: ${Math.round(scale * 100)}% | Space+Drag to Pan | Scroll to Zoom`;
     }
 }
 
@@ -337,7 +337,12 @@ document.getElementById('joinBtn').addEventListener('click', () => {
 });
 
 function initPeer(targetId = null) {
-    const myId = targetId ? null : BOARD_PREFIX + Math.floor(1000 + Math.random() * 9000);
+    isHost = false; // Reset host status
+    const statusEl = document.getElementById('connectionStatus');
+    statusEl.textContent = '● Connecting...';
+    statusEl.style.color = '#ffc107'; // Warning yellow
+
+    const myId = targetId ? undefined : BOARD_PREFIX + Math.floor(1000 + Math.random() * 9000);
     
     if (peer) peer.destroy();
     peer = new Peer(myId);
@@ -354,6 +359,7 @@ function initPeer(targetId = null) {
             setupConnection(conn);
         } else {
             isHost = true;
+            updateConnectionStatus();
         }
     });
 
@@ -365,6 +371,8 @@ function initPeer(targetId = null) {
             location.reload();
         } else {
             console.error('PeerJS Error:', err.type);
+            statusEl.textContent = '● Error';
+            statusEl.style.color = '#dc3545'; // Danger red
         }
     });
 
@@ -374,7 +382,8 @@ function initPeer(targetId = null) {
 }
 
 function setupConnection(conn) {
-    conn.on('open', () => {
+    const onOpen = () => {
+        if (connections.includes(conn)) return;
         connections.push(conn);
         updateConnectionStatus();
         
@@ -394,7 +403,13 @@ function setupConnection(conn) {
                 } 
             });
         }
-    });
+    };
+
+    if (conn.open) {
+        onOpen();
+    } else {
+        conn.on('open', onOpen);
+    }
 
     conn.on('data', (msg) => {
         handleRemoteData(msg);
@@ -403,6 +418,12 @@ function setupConnection(conn) {
                 if (c !== conn) c.send(msg);
             });
         }
+    });
+
+    conn.on('error', (err) => {
+        console.error('Connection Error:', err);
+        connections = connections.filter(c => c !== conn);
+        updateConnectionStatus();
     });
 
     conn.on('close', () => {
@@ -415,8 +436,10 @@ function updateConnectionStatus() {
     const statusEl = document.getElementById('connectionStatus');
     if (connections.length > 0) {
         statusEl.textContent = isHost ? `● Hosting (${connections.length})` : '● Live';
+        statusEl.style.color = '#28a745'; // Success green
     } else {
-        statusEl.textContent = '● Waiting...';
+        statusEl.textContent = isHost ? '● Waiting for peers...' : '● Connecting...';
+        statusEl.style.color = '#ffc107'; // Warning yellow
     }
 }
 
@@ -424,6 +447,7 @@ function handleRemoteData(msg) {
     switch (msg.type) {
         case 'INIT_STATE':
             strokes = msg.data.strokes || [];
+            remoteActiveStrokes.clear();
             bgColorPicker.value = msg.data.bgColor || '#ffffff';
             if (msg.data.viewport) {
                 scale = msg.data.viewport.scale || 1;
