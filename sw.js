@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pizzaboard-v1.7';
+const CACHE_NAME = 'pizzaboard-v1.8';
 const ASSETS = [
   './index.html',
   './terms.html',
